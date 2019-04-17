@@ -1,0 +1,32 @@
+#! /usr/bin/env php
+
+<?php
+
+use Symfony\Component\Console\Application;
+
+require 'vendor/autoload.php';
+
+$app = new Application('Pusher', '1.0');
+
+try
+{
+    $pdo = new PDO('sqlite:host.sqlite');
+
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+}
+catch (Exception $e)
+{
+    echo 'Could not connect to database';
+    exit(1);
+}
+
+$dbAdapter = new Tsquare\Pusher\DatabaseAdapter($pdo);
+
+$app->add(new Tsquare\Pusher\AddHostCommand($dbAdapter));
+$app->add(new Tsquare\Pusher\ListHostsCommand($dbAdapter));
+$app->add(new Tsquare\Pusher\RemoveHostCommand($dbAdapter));
+$app->add(new Tsquare\Pusher\PushCommand($dbAdapter));
+$app->add(new Tsquare\Pusher\HostCommand($dbAdapter));
+
+$app->run();
