@@ -28,12 +28,55 @@ class PushCommand extends Command
             return $output->writeln('You must specify files to be pushed with -f');
         }
 
+        $files = $this->getAllFilesIfDirectory($files);
+
         if ($input->getOption('group')) {
             $group = $input->getOption('group');
             $this->pushFilesToGroup($input, $output, $group, $files);
         } else {
             $this->pushFiles($input, $output, $host, $files);
         }
+    }
+
+    public function getAllFilesIfDirectory($files)
+    {
+        $return = [];
+        if (is_array($files)) {
+            foreach ($files as $file) {
+                if (is_dir($file)) {
+                    $return = array_merge($return, $this->getDirContents($file));
+                } else {
+                    $return[] = $file;
+                }
+            }
+        } else {
+            if (is_dir($files)) {
+                $return = array_merge($return, $this->getDirContents($files));
+            } else {
+                $return[] = $files;
+            }
+        }
+        return $return;
+    }
+
+    public function getDirContents($dir, &$results = array())
+    {
+        $files = scandir($dir);
+
+        foreach ($files as $key => $value) {
+            $path = $dir.DIRECTORY_SEPARATOR.$value;
+
+            if (!is_dir($path)) {
+                $results[] = $path;
+            } elseif ($value != "." && $value != "..") {
+                $this->getDirContents($path, $results);
+                $results[] = $path;
+            } elseif ($value === '.') {
+                $results[] = $dir;
+            }
+        }
+
+        return $results;
     }
 
     public function pushFilesToGroup($input, $output, $group, $files)
@@ -50,7 +93,7 @@ class PushCommand extends Command
                     if (is_file($file)) {
                         $arrayOfSuccess[] = $this->push_single_file($host, $file);
                     } else {
-                        $arrayOfSuccess[] = $tihs->create_directory($host, $file);
+                        $arrayOfSuccess[] = $this->create_directory($host, $file);
                     }
                 }
             } else {
@@ -127,6 +170,8 @@ class PushCommand extends Command
     {
         $conn = $this->ftp_connect($host);
 
+        // debugging getting the absolute path rather than relative
+        // die(var_dump($file));
         $put = ftp_put($conn, $file, $file, FTP_ASCII);
 
         ftp_close($conn);
