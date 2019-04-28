@@ -147,13 +147,18 @@ class PushCommand extends Command
     public function push_from_stored_host($output, $host, $files)
     {
         $success = false;
-        $files = array($files);
+        if (!is_array($files)) {
+            $files = array($files);
+        }
+        
         foreach ($files as $file) {
             if (is_file($file)) {
                 $result = $this->push_single_file($host, $file);
             } elseif (is_dir($file)) {
                 // create the directory
                 $result = $this->create_directory($host, $file);
+            } elseif (is_array($file)) {
+                return "Failed to locate files";
             } else {
                 return "Failed to locate $file";
             }

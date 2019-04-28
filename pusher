@@ -28,5 +28,7 @@ $app->add(new Tsquare\Pusher\ListHostsCommand($dbAdapter));
 $app->add(new Tsquare\Pusher\RemoveHostCommand($dbAdapter));
 $app->add(new Tsquare\Pusher\PushCommand($dbAdapter));
 $app->add(new Tsquare\Pusher\HostCommand($dbAdapter));
+$app->add(new Tsquare\Pusher\ListDirectoryCommand($dbAdapter));
+$app->add(new Tsquare\Pusher\DeleteFileCommand($dbAdapter));
 
 $app->run();
